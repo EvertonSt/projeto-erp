@@ -1,6 +1,7 @@
 ﻿using Modelo;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DAL
 {
-    class DALCategoria
+    public class DALCategoria
     {
         private DALConexao conexao;
         public DALCategoria(DALConexao cx)
@@ -35,6 +36,44 @@ namespace DAL
             conexao.Conectar();
             cmd.ExecuteNonQuery();
             conexao.Desonectar();
+        }
+
+        public void Excluir(int codigo)
+        {
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conexao.ObjetoConexao;
+            cmd.CommandText = "delete from categoria where cat_cod = @codigo;";
+            cmd.Parameters.AddWithValue("@codigo", codigo);
+            conexao.Conectar();
+            cmd.ExecuteNonQuery();
+            conexao.Desonectar();
+        }
+        public DataTable Localizar(String valor)
+        {
+            DataTable tabela = new DataTable();
+            SqlDataAdapter da = new SqlDataAdapter("Select * from categoria where cat_nome like '%" +
+                valor + "%'", conexao.StringConexao);
+            da.Fill(tabela);
+            return tabela;
+        }
+
+        public ModeloCategoria CarregaModeloCategoria(int codigo)
+        {
+            ModeloCategoria modelo = new ModeloCategoria();
+            SqlCommand cmd = new SqlCommand();
+            cmd.Connection = conexao.ObjetoConexao;
+            cmd.CommandText = "select * from categoria where cat_cod = @codigo";
+            cmd.Parameters.AddWithValue("@codigo", codigo);
+            conexao.Conectar();
+            SqlDataReader registro = cmd.ExecuteReader();
+            if (registro.HasRows)
+            {
+                registro.Read();
+                modelo.CatCod = Convert.ToInt32(registro["cat_cod"]);
+                modelo.CatNome = Convert.ToString(registro["cat_nome"]);
+            }
+            conexao.Desonectar();
+            return modelo;
         }
     }
 }
